@@ -1,0 +1,8 @@
+rotations.txt
+build/
+.vscode/
+CMakeLists.txt
+*.exe
+*.ilk
+*.obj
+*.pdb
