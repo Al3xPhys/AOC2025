@@ -62,7 +62,7 @@ int main()
     auto time_end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(time_end - time_start).count();
 
-    cout << "Total charge from all battery banks: " << total_charge << endl;   
+    cout << "Total charge from all battery banks: " << total_charge << endl;
     cout << "Execution time: " << duration << " ms" << endl;
     file.close();
     return 0;
