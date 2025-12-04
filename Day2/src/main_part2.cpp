@@ -2,8 +2,8 @@
 #include <string>
 #include <fstream> // file input
 #include <sstream> // stringstream for parsing
-#include <regex>   // regex for parsing
 #include <chrono>
+#include <cmath>
 
 using namespace std;
 using namespace std::chrono;
@@ -35,64 +35,73 @@ long long string_to_long_long(const string &num_str)
     return result;
 }
 
-vector<int> getFactors(long long const num)
-{
-    // Get all factors of num ignoring itself
-    vector<int> factors;
-    // cout << "Getting factors for number: " << num << "\n";
-    for (int i = 1; i <= num - 1; ++i)
-    {
-        if (num % i == 0)
-        {
-            factors.push_back(i);
-        }
-    }
-    return factors;
+// Precomputed powers of 10 to remove need for
+static const long long POW10[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000LL, 100000000000LL, 1000000000000LL};
+
+inline int countDigits(long long num) {
+    if (num < 10) return 1;
+    if (num < 100) return 2;
+    if (num < 1000) return 3;
+    if (num < 10000) return 4;
+    if (num < 100000) return 5;
+    if (num < 1000000) return 6;
+    if (num < 10000000) return 7;
+    if (num < 100000000) return 8;
+    if (num < 1000000000) return 9;
+    if (num < 10000000000LL) return 10;
+    if (num < 100000000000LL) return 11;
+    return 12;
 }
 
 bool isRepeat(long long id){
-    /* this will check if there are any repeats of digits that repeat at least twice
-     i.2 12341234 has 1234 twice, 1212121212 has 12 five times etc. */
-    long long temp = id;
-    int len = 0;
-    while (temp > 0)
-    {
-        len++;
-        temp /= 10;
-    } // count number of digits
-
-    vector<int> factors = getFactors(len); // get all factors of number of digits
-    for (int factor : factors)
-    {
-        int repeat_count = len / factor; // how many times the sequence would repeat
-        long long divisor = 1; // to extract the repeating sequence
-        for (int i = 0; i < factor; ++i)
-        {
-            divisor *= 10; // 10^factor
+    int len = countDigits(id);
+    
+    /* Hardcode in checks to check for repeated sequences of common digit factors, 2,3,4 and 5 */
+    if (len % 2 == 0) {
+        int half = len / 2;
+        long long divisor = POW10[half];
+        if (id / divisor == id % divisor) {
+            return true;
         }
-        long long sequence = id % divisor; // get the last 'factor' digits as the sequence
+    }
+    
+    if (len % 3 == 0) {
+        int third = len / 3;
+        long long divisor = POW10[third];
+        long long first = id / POW10[2 * third];
+        long long second = (id / divisor) % divisor;
+        long long third_part = id % divisor;
+        if (first == second && second == third_part) {
+            return true;
+        }
+    }
+    
+    // for higher factors, do a for loop to calculate chunks and compare
+    for (int factor = 4; factor <= len / 2; ++factor) {
+        if (len % factor != 0) continue;
+        int repeat_count = len / factor;
+        
+        long long divisor = POW10[factor];
+        long long sequence = id % divisor;
         bool all_match = true;
-        for (int j = 1; j < repeat_count; ++j) // check all repeats
-        {
-            long long next_sequence = (id / static_cast<long long>(pow(10, j * factor))) % divisor; // get the next sequence
-            if (next_sequence != sequence) // if not match, break
-            {
+        
+        long long temp = id / divisor;
+        for (int j = 1; j < repeat_count; ++j) {
+            if (temp % divisor != sequence) {
                 all_match = false;
                 break;
             }
+            temp /= divisor;
         }
-        if (all_match) // if all chunks match, it's a repeat
-        {
-            // cout << "ID " << id << " has repeating sequence " << sequence << " repeated " << repeat_count << " times.\n";
-            return true;
-        }
-
+        if (all_match) return true;
     }
-    return false; // no repeating pattern found
+    
+    return false;
 }
 
 int main()
 {
+
     // read in file and store line as string
     ifstream file("idranges.txt");
     if (!file)
@@ -103,7 +112,7 @@ int main()
     string line;
     getline(file, line);
     file.close();
-
+    auto start_time = high_resolution_clock::now();
     // parse the line to extract id ranges using delimter ','
     stringstream ss(line);
     string id_range;
@@ -133,7 +142,10 @@ int main()
         }
 
     }
+    auto end_time = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(end_time - start_time).count();
     cout << "Total invalid ID sum: " << total_invalid_id_sum << "\n";
     cout << "Number of ranges processed: " << number_of_ranges << "\n";
+    cout << "Duration: " << duration << " milliseconds\n";
     return 0;
 }
