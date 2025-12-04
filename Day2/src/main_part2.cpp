@@ -36,7 +36,7 @@ long long string_to_long_long(const string &num_str)
 }
 
 // Precomputed powers of 10 to remove need for
-static const long long POW10[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000LL, 100000000000LL, 1000000000000LL};
+static const long long powersOf10[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000LL, 100000000000LL, 1000000000000LL};
 
 inline int countDigits(long long num) {
     if (num < 10) return 1;
@@ -59,7 +59,7 @@ bool isRepeat(long long id){
     /* Hardcode in checks to check for repeated sequences of common digit factors, 2,3,4 and 5 */
     if (len % 2 == 0) {
         int half = len / 2;
-        long long divisor = POW10[half];
+        long long divisor = powersOf10[half];
         if (id / divisor == id % divisor) {
             return true;
         }
@@ -67,8 +67,8 @@ bool isRepeat(long long id){
     
     if (len % 3 == 0) {
         int third = len / 3;
-        long long divisor = POW10[third];
-        long long first = id / POW10[2 * third];
+        long long divisor = powersOf10[third];
+        long long first = id / powersOf10[2 * third];
         long long second = (id / divisor) % divisor;
         long long third_part = id % divisor;
         if (first == second && second == third_part) {
@@ -81,7 +81,7 @@ bool isRepeat(long long id){
         if (len % factor != 0) continue;
         int repeat_count = len / factor;
         
-        long long divisor = POW10[factor];
+        long long divisor = powersOf10[factor];
         long long sequence = id % divisor;
         bool all_match = true;
         
