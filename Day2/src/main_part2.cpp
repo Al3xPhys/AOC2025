@@ -18,14 +18,7 @@ No IDs have leading zeros. (0101 does not exist in the input, 101 does and is va
 Find all invalid IDs, i.e 11-22 would be two invalid IDs: 11 and 22, 95-115 would be one invalid ID: 99.
 Output the sum of all invalid IDs.i.e 11+22+99 = 132 */
 
-void convert_range_str_to_start_end_strings(const string &range_str, string &start_str, string &end_str)
-{
-    stringstream id_range_ss(range_str);
-    getline(id_range_ss, start_str, '-'); // get start ID range and store in reference
-    getline(id_range_ss, end_str, '-');   // get end ID range and store in reference
-}
-
-long long string_to_long_long(const string &num_str)
+long long stringToLongLong(const string &num_str)
 {
     long long result = 0;
     for (char c : num_str)
@@ -35,22 +28,50 @@ long long string_to_long_long(const string &num_str)
     return result;
 }
 
-// Precomputed powers of 10 to remove need for
-static const long long powersOf10[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000LL, 100000000000LL, 1000000000000LL};
+// precomputed powers of 10 to remove need for pow()
+static const long long powersOf10[] = {
+    1LL, 
+    10LL, 
+    100LL, 
+    1000LL, 
+    10000LL, 
+    100000LL, 
+    1000000LL, 
+    10000000LL, 
+    100000000LL, 
+    1000000000LL, 
+    10000000000LL, 
+    100000000000LL, 
+    1000000000000LL,
+    10000000000000LL,
+    100000000000000LL,
+    1000000000000000LL,
+    10000000000000000LL,
+    100000000000000000LL,
+    1000000000000000000LL
+};
 
-inline int countDigits(long long num) {
-    if (num < 10) return 1;
-    if (num < 100) return 2;
-    if (num < 1000) return 3;
-    if (num < 10000) return 4;
-    if (num < 100000) return 5;
-    if (num < 1000000) return 6;
-    if (num < 10000000) return 7;
-    if (num < 100000000) return 8;
-    if (num < 1000000000) return 9;
-    if (num < 10000000000LL) return 10;
-    if (num < 100000000000LL) return 11;
-    return 12;
+inline int countDigits(long long const id) {
+    /* hardcoded digit count for efficiency */
+    if (id < 10) return 1;
+    if (id < 100) return 2;
+    if (id < 1000) return 3;
+    if (id < 10000) return 4;
+    if (id < 100000) return 5;
+    if (id < 1000000) return 6;
+    if (id < 10000000) return 7;
+    if (id < 100000000) return 8;
+    if (id < 1000000000) return 9;
+    if (id < 10000000000LL) return 10;
+    if (id < 100000000000LL) return 11;
+    if (id < 1000000000000LL) return 12;
+    if (id < 10000000000000LL) return 13;
+    if (id < 100000000000000LL) return 14;
+    if (id < 1000000000000000LL) return 15;
+    if (id < 10000000000000000LL) return 16;
+    if (id < 100000000000000000LL) return 17;
+    if (id < 1000000000000000000LL) return 18;
+    return 19; // max for signed long long
 }
 
 bool isRepeat(long long id){
@@ -129,8 +150,8 @@ int main()
         {
             continue; // invalid range, skip
         }
-        long long start_id = string_to_long_long(id_range.substr(0, dash_pos)); // convert to long long
-        long long end_id = string_to_long_long(id_range.substr(dash_pos + 1));  // convert to long long.
+        long long start_id = stringToLongLong(id_range.substr(0, dash_pos)); // convert to long long
+        long long end_id = stringToLongLong(id_range.substr(dash_pos + 1));  // convert to long long.
         for (long long id = start_id; id <= end_id; ++id)
         {
             bool repeats = isRepeat(id);
