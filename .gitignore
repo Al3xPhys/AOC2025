@@ -6,4 +6,4 @@ CMakeLists.txt
 *.ilk
 *.obj
 *.pdb
-.txt
+*.txt
