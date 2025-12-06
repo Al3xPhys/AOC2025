@@ -1,249 +1,167 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <string>
 #include <vector>
 #include <cctype>
 
 using namespace std;
 
-/* AOC Day 6 Part 1:
- */
-
-// FUNCTIONS TO READ AND DISPLAY DATA FROM INPUT FILE //
-
-vector<char> readOperations(const vector<string> &lines)
-{
-    vector<char> operation;
-    
-    // Find the line with operators (contains non-digit, non-space characters)
-    for (const string &line : lines)
-    {
-        bool hasOperators = false;
-        for (char ch : line)
-        {
-            if (ch != ' ' && !isdigit(ch))
-            {
-                hasOperators = true;
-                break;
+// Extract operations from the operator line
+vector<char> readOperations(const vector<string>& lines) {
+    for (const string& line : lines) {
+        // Check if this line has operators
+        for (char ch : line) {
+            if (ch != ' ' && !isdigit(ch)) {
+                // Found operator line - extract all non-space chars
+                vector<char> ops;
+                for (char c : line) {
+                    if (c != ' ') ops.push_back(c);
+                }
+                return ops;
             }
         }
+    }
+    return {};
+}
+
+// Filter to get only number lines (no operators)
+vector<string> getNumberLines(const vector<string>& lines) {
+    vector<string> result;
+    for (const string& line : lines) {
+        if (line.empty()) continue;
         
-        if (hasOperators)
-        {
-            // Extract operators from this line
-            for (char ch : line)
-            {
-                if (ch != ' ')
-                {
-                    operation.push_back(ch);
-                }
-            }
-            break;
-        }
-    }
-
-    return operation;
-}
-
-// FUNCTION TO PROCESS DATA AND OBTAIN SOLUTION //
-
-uint64_t solve_grid(vector<vector<vector<int64_t>>> &blockVectors, const vector<char> &operations)
-{
-    /* Read each block, read each column top to bottom (ignoring -1) to make a number.
-    Then perform the corresponding operation on these new numbers.*/
-
-    uint64_t total_result = 0;
-    // for each block
-    for (int blockIdx = 0; blockIdx < blockVectors.size(); blockIdx++)
-    {
-        uint64_t block_result = 0;
-        // cout << "Processing Block " << blockIdx << ":\n";
-        // for each column in block
-        for (int col = 0; col < blockVectors[blockIdx][0].size(); col++)
-        {
-            // read down column to form number
-            int64_t number = 0;
-            for (int row = 0; row < blockVectors[blockIdx].size(); row++)
-            {
-                int64_t val = blockVectors[blockIdx][row][col];
-                if (val != -1)
-                {
-                    number = number * 10 + val; // append digit
-                }
-            }
-            if (number != 0)
-            {
-                // cout << " Formed number from column " << col << ": " << number << "\n";
-                // after forming number, perform operation if applicable
-                // cout << operations.size() << " " << blockIdx << "\n";
-                char op = operations[blockIdx]; // assuming operations size matches number of blocks
-                if (op == '+')
-                {
-                    // cout << "  Adding " << number << " to total.\n";
-                    block_result += number;
-                    // cout << "  Intermediate block result: " << block_result << "\n";
-                }
-                else if (op == '*')
-                {
-                    // cout << "  Multiplying total by " << number << ".\n";
-                    if (block_result == 0)
-                    {
-                        block_result = 1;
-                    }
-                    block_result *= number;
-                    // cout << "  Intermediate block result: " << block_result << "\n";
-                }
-            }
-        }
-        // cout << " Result for Block " << blockIdx << ": " << block_result << "\n";
-        total_result += block_result;
-    }
-
-    return total_result;
-}
-
-vector<vector<vector<int64_t>>> parse_grid(const vector<string> &lines)
-{
-    // filter out lines that contain operators
-    vector<string> numberLines;
-
-    for (const string &l : lines)
-    {
-        // check if line contains any non-digit non-space characters
-        bool hasOperators = false;
-        for (char ch : l)
-        {
-            if (ch != ' ' && !isdigit(ch))
-            {
-                hasOperators = true;
+        bool isNumberLine = true;
+        for (char ch : line) {
+            if (ch != ' ' && !isdigit(ch)) {
+                isNumberLine = false;
                 break;
             }
         }
-
-        if (!hasOperators && !l.empty())
-        {
-            numberLines.push_back(l);
-        }
+        if (isNumberLine) result.push_back(line);
     }
+    return result;
+}
 
-    if (numberLines.empty())
-    {
-        return {};
-    }
-
-    size_t numRows = numberLines.size();
+// Find block column ranges by detecting vertical whitespace
+vector<pair<int, int>> findBlockRanges(const vector<string>& numberLines) {
+    if (numberLines.empty()) return {};
+    
     size_t maxWidth = 0;
-    for (const string &l : numberLines)
-    {
-        if (l.size() > maxWidth)
-        {
-            maxWidth = l.size();
-        }
+    for (const string& line : numberLines) {
+        maxWidth = max(maxWidth, line.size());
     }
-
-    // find block boundaries by detecting vertical whitespace columns
-    vector<pair<int, int>> blockRanges; // start and end column index for each block
+    
+    vector<pair<int, int>> ranges;
     bool inBlock = false;
-    int blockStart = 0;
-
-    for (int col = 0; col < maxWidth; col++)
-    {
-        // Check if this column has any non-space characters
+    int start = 0;
+    
+    for (int col = 0; col < maxWidth; col++) {
         bool hasContent = false;
-        for (int row = 0; row < numRows; row++)
-        {
-            if (col < numberLines[row].size() && numberLines[row][col] != ' ')
-            {
+        for (const string& line : numberLines) {
+            if (col < line.size() && line[col] != ' ') {
                 hasContent = true;
                 break;
             }
         }
-
-        if (hasContent && !inBlock)
-        {
-            blockStart = col;
+        
+        if (hasContent && !inBlock) {
+            start = col;
             inBlock = true;
-        }
-        else if (!hasContent && inBlock)
-        {
-            blockRanges.push_back({blockStart, col - 1});
+        } else if (!hasContent && inBlock) {
+            ranges.push_back({start, col - 1});
             inBlock = false;
         }
     }
+    
+    if (inBlock) ranges.push_back({start, maxWidth - 1});
+    return ranges;
+}
 
-    //  case where last block extends to end
-    if (inBlock)
-    {
-        blockRanges.push_back({blockStart, maxWidth - 1});
-    }
-
-    // 2D vector for each block
-    vector<vector<vector<int64_t>>> blockVectors(blockRanges.size());
-
-    // parse  each block, preserving exact positions
-    for (int blockIdx = 0; blockIdx < blockRanges.size(); blockIdx++)
-    {
+// Parse grid into blocks, storing digits with exact positions
+vector<vector<vector<int64_t>>> parse_grid(const vector<string>& lines) {
+    vector<string> numberLines = getNumberLines(lines);
+    if (numberLines.empty()) return {};
+    
+    vector<pair<int, int>> blockRanges = findBlockRanges(numberLines);
+    vector<vector<vector<int64_t>>> blocks(blockRanges.size());
+    
+    for (size_t blockIdx = 0; blockIdx < blockRanges.size(); blockIdx++) {
         int startCol = blockRanges[blockIdx].first;
         int endCol = blockRanges[blockIdx].second;
-        int blockWidth = endCol - startCol + 1;
-
-        vector<vector<int64_t>> blockGrid(numRows, vector<int64_t>(blockWidth, -1));
-
-        for (int row = 0; row < numRows; row++)
-        {
-            for (int col = startCol; col <= endCol; col++)
-            {
-                int blockCol = col - startCol;
-
-                if (col < numberLines[row].size())
-                {
-                    char ch = numberLines[row][col];
-                    if (isdigit(ch))
-                    {
-                        blockGrid[row][blockCol] = ch - '0';
-                    }
+        int width = endCol - startCol + 1;
+        
+        vector<vector<int64_t>> grid(numberLines.size(), vector<int64_t>(width, -1));
+        
+        for (size_t row = 0; row < numberLines.size(); row++) {
+            for (int col = startCol; col <= endCol && col < numberLines[row].size(); col++) {
+                char ch = numberLines[row][col];
+                if (isdigit(ch)) {
+                    grid[row][col - startCol] = ch - '0';
                 }
             }
         }
-        blockVectors[blockIdx] = blockGrid;
+        blocks[blockIdx] = grid;
     }
-
-    return blockVectors;
+    
+    return blocks;
 }
 
-int main()
-{
-    ifstream infile("input_al.txt");
+// Solve: form numbers from each column and apply operations
+uint64_t solve_grid(const vector<vector<vector<int64_t>>>& blocks, const vector<char>& ops) {
+    uint64_t total = 0;
+    
+    for (size_t blockIdx = 0; blockIdx < blocks.size(); blockIdx++) {
+        uint64_t blockResult = 0;
+        const auto& block = blocks[blockIdx];
+        char op = ops[blockIdx];
+        
+        // Process each column in the block
+        for (size_t col = 0; col < block[0].size(); col++) {
+            // Form number from column (top to bottom, skip -1)
+            int64_t num = 0;
+            for (size_t row = 0; row < block.size(); row++) {
+                int64_t val = block[row][col];
+                if (val != -1) {
+                    num = num * 10 + val;
+                }
+            }
+            
+            // Apply operation
+            if (num != 0) {
+                if (op == '+') {
+                    blockResult += num;
+                } else if (op == '*') {
+                    blockResult = (blockResult == 0) ? num : blockResult * num;
+                }
+            }
+        }
+        total += blockResult;
+    }
+    
+    return total;
+}
 
-    if (!infile.is_open())
-    {
+int main() {
+    ifstream infile("input_al.txt");
+    if (!infile.is_open()) {
         cerr << "Error opening file!" << endl;
         return 1;
     }
-
-    // read lines from file
+    
+    // Read all lines
     vector<string> lines;
     string line;
-    while (getline(infile, line))
-    {
+    while (getline(infile, line)) {
         lines.push_back(line);
     }
     infile.close();
     
-    // parse operations and grid from the same file
-    vector<char> operation = readOperations(lines);
-    vector<vector<vector<int64_t>>> blockVectors = parse_grid(lines);
-
-    // cout << operation.size() << " operations read.\n";
-
-    // cout << "Operations read from file:\n";
-
-    // ----- Part 2 ----- //
-
-    // process data to obtain solution
-    uint64_t result_part2 = solve_grid(blockVectors, operation);
-    cout << "Total result:" << result_part2 << "\n";
-
+    // Parse and solve
+    vector<char> operations = readOperations(lines);
+    vector<vector<vector<int64_t>>> blocks = parse_grid(lines);
+    uint64_t result = solve_grid(blocks, operations);
+    
+    cout << "Total result: " << result << "\n";
+    
     return 0;
 }
