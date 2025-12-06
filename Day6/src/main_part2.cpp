@@ -84,9 +84,10 @@ ParsedData parseInput(const vector<string> &lines)
     vector<pair<int, int>> ranges;
     ranges.reserve(10);
     bool inBlock = false;
-    int start = 0;
+    size_t start = 0;
 
-    for (int col = 0; col < maxWidth; col++)
+    
+    for (size_t col = 0; col < maxWidth; col++)
     {
         bool hasContent = false;
         for (const string &line : numberLines)
@@ -128,7 +129,7 @@ ParsedData parseInput(const vector<string> &lines)
         for (size_t row = 0; row < numberLines.size(); row++)
         {
             const string &line = numberLines[row];
-            for (int col = startCol; col <= endCol && col < line.size(); col++)
+            for (size_t col = startCol; col <= endCol && col < line.size(); col++)
             {
                 char ch = line[col];
                 if (ch >= '0' && ch <= '9')
@@ -189,7 +190,7 @@ uint64_t solve(const vector<vector<vector<int8_t>>> &blocks, const vector<char> 
 
 int main()
 {
-    ifstream infile("input_al.txt");
+    ifstream infile("input.txt");
     if (!infile.is_open())
     {
         cerr << "Error opening file!" << endl;
