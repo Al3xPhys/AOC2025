@@ -120,9 +120,9 @@ ParsedData parseInput(const vector<string> &lines)
     data.blocks.resize(ranges.size());
     for (size_t blockIdx = 0; blockIdx < ranges.size(); blockIdx++)
     {
-        int startCol = ranges[blockIdx].first;
-        int endCol = ranges[blockIdx].second;
-        int width = endCol - startCol + 1;
+        size_t startCol = ranges[blockIdx].first;
+        size_t endCol = ranges[blockIdx].second;
+        size_t width = endCol - startCol + 1;
 
         vector<vector<int8_t>> grid(numberLines.size(), vector<int8_t>(width, -1));
 
