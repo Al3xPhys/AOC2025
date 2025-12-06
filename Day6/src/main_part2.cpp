@@ -12,21 +12,34 @@ using namespace std;
 
 // FUNCTIONS TO READ AND DISPLAY DATA FROM INPUT FILE //
 
-vector<char> readOperations(ifstream &infile, int ops_row = 5)
+vector<char> readOperations(const vector<string> &lines)
 {
-    string line;
-    getline(infile, line);
-
-    for (int i = 0; i < ops_row; i++)
-    {
-        getline(infile, line);
-    }
     vector<char> operation;
-    for (char ch : line)
+    
+    // Find the line with operators (contains non-digit, non-space characters)
+    for (const string &line : lines)
     {
-        if (ch != ' ')
+        bool hasOperators = false;
+        for (char ch : line)
         {
-            operation.push_back(ch);
+            if (ch != ' ' && !isdigit(ch))
+            {
+                hasOperators = true;
+                break;
+            }
+        }
+        
+        if (hasOperators)
+        {
+            // Extract operators from this line
+            for (char ch : line)
+            {
+                if (ch != ' ')
+                {
+                    operation.push_back(ch);
+                }
+            }
+            break;
         }
     }
 
@@ -63,6 +76,7 @@ uint64_t solve_grid(vector<vector<vector<int64_t>>> &blockVectors, const vector<
             {
                 // cout << " Formed number from column " << col << ": " << number << "\n";
                 // after forming number, perform operation if applicable
+                // cout << operations.size() << " " << blockIdx << "\n";
                 char op = operations[blockIdx]; // assuming operations size matches number of blocks
                 if (op == '+')
                 {
@@ -89,15 +103,8 @@ uint64_t solve_grid(vector<vector<vector<int64_t>>> &blockVectors, const vector<
     return total_result;
 }
 
-vector<vector<vector<int64_t>>> parse_grid(ifstream &infile)
+vector<vector<vector<int64_t>>> parse_grid(const vector<string> &lines)
 {
-    vector<string> lines;
-    string line;
-    while (getline(infile, line))
-    {
-        lines.push_back(line);
-    }
-
     // filter out lines that contain operators
     vector<string> numberLines;
 
@@ -207,7 +214,7 @@ vector<vector<vector<int64_t>>> parse_grid(ifstream &infile)
 
 int main()
 {
-    ifstream infile("input.txt");
+    ifstream infile("input_al.txt");
 
     if (!infile.is_open())
     {
@@ -215,20 +222,28 @@ int main()
         return 1;
     }
 
-    vector<char> operation = readOperations(infile);
+    // read lines from file
+    vector<string> lines;
+    string line;
+    while (getline(infile, line))
+    {
+        lines.push_back(line);
+    }
+    infile.close();
+    
+    // parse operations and grid from the same file
+    vector<char> operation = readOperations(lines);
+    vector<vector<vector<int64_t>>> blockVectors = parse_grid(lines);
 
-    cout << "Operations read from file:\n";
+    // cout << operation.size() << " operations read.\n";
+
+    // cout << "Operations read from file:\n";
 
     // ----- Part 2 ----- //
-    ifstream infile2("input.txt");
-
-    vector<vector<vector<int64_t>>> blockVectors = parse_grid(infile2);
 
     // process data to obtain solution
     uint64_t result_part2 = solve_grid(blockVectors, operation);
     cout << "Total result:" << result_part2 << "\n";
-
-    infile.close();
 
     return 0;
 }
