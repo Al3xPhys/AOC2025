@@ -25,7 +25,7 @@ vector<vector<char>> parse_tacyon_diagram(ifstream &infile)
     return diagram;
 }
 
-int64_t count_beam_splits(const vector<vector<char>> &tacyon_diagram)
+void count_beam_splits(const vector<vector<char>> &tacyon_diagram)
 {
     // find the start position 'S' on first row of the diagram
     auto start_it = find(tacyon_diagram[0].begin(), tacyon_diagram[0].end(), 'S');
@@ -40,7 +40,6 @@ int64_t count_beam_splits(const vector<vector<char>> &tacyon_diagram)
     beam_positions[beam_start_index] = 1;
 
     // iterate through each row of the diagram starting from the second row
-    int64_t total_beam_splits = 0; // track total number of beam splits
 
     for (size_t row = 1; row < tacyon_diagram.size(); ++row)
     {
@@ -53,7 +52,6 @@ int64_t count_beam_splits(const vector<vector<char>> &tacyon_diagram)
             if (current_row[pos] == '^')
             {
                 // beam splitter found, each of the 'count' beams at this position splits into two
-                total_beam_splits += count;
                 if (pos > 0)
                 {
                     new_beam_positions[pos - 1] += count; // add 'count' left beams
@@ -80,8 +78,6 @@ int64_t count_beam_splits(const vector<vector<char>> &tacyon_diagram)
         total_beams += count;
     }
     cout << "Total number of beams after traversing the diagram: " << total_beams << endl;
-
-    return total_beam_splits;
 }
 
 int main()
@@ -94,7 +90,7 @@ int main()
     }
 
     vector<vector<char>> tacyon_diagram = parse_tacyon_diagram(infile); // parse the diagram into a 2D vector
-    int64_t total_beam_splits = count_beam_splits(tacyon_diagram);      // count the beam splits
+    count_beam_splits(tacyon_diagram);      // count the beam splits
 
     infile.close();
     return 0;
