@@ -7,6 +7,7 @@
 #include <map>
 #include <set>
 #include <cmath>
+#include <chrono>
 
 using namespace std;
 
@@ -133,7 +134,10 @@ JunctionList parse_file()
 }
 
 int main()
-{
+{   
+    // time the code execution
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     JunctionList junction_list = parse_file();
 
     // calcualte all pairwise distances and store in a vector of JunctionPair structs
@@ -207,7 +211,9 @@ int main()
                 active_circuits++;
         }
     }
-
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end_time - start_time;
+    cout << "Elapsed time: " << elapsed.count() << " seconds" << endl;
 
     // any empty networks can be removed
     vector<Network> final_networks;
@@ -219,13 +225,6 @@ int main()
         }
     }
     networks = final_networks;
-
-    // print out the size of each network
-    // cout << "\n=== Network Sizes ===" << endl;
-    // for (int i = 0; i < networks.size(); ++i)
-    // {
-    //     cout << "Network #" << (i + 1) << " size: " << networks[i].junctions.size() << " junctions" << endl;
-    // }
 
     // get the three largest network sizez and multiply their sizes together
     vector<size_t> network_sizes;
